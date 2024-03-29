@@ -21,7 +21,7 @@ To store an item, simply move it to the logistics trash in the inventory screen.
 A limit can be set to prevent producing too much of an item.  
 A reservation can be set to always keep some resources in storage.
 
-Most items can be stored, aside from ones that contain other items - like armours or vehicles (storing these would strip them of their contents, as the items are removed from the game world when they are stored).
+Most items can be stored, aside from ones that extra info - like blueprints or spidertron remotes (storing these would strip them of their contents, as the items are removed from the game world when they are stored). Items with equipment grids like armours and vehicles will have their equipment removed and stored along-side them, however.
 
 
 ## Multiplayer Compatible
