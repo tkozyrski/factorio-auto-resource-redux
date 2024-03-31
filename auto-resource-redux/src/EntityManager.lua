@@ -25,6 +25,7 @@ local entity_queue_specs = {
   ["artillery-turret"] = { handler = EntityHandlers.handle_turret },
   ["ammo-turret"] = { handler = EntityHandlers.handle_turret },
   ["boiler"] = { handler = EntityHandlers.handle_boiler, ticks_per_cycle = 120 },
+  ["burner-generator"] = { handler = EntityHandlers.handle_burner_generator, ticks_per_cycle = 120 },
   ["reactor"] = { handler = EntityHandlers.handle_reactor, ticks_per_cycle = 120 },
   ["mining-drill"] = { handler = EntityHandlers.handle_mining_drill, ticks_per_cycle = 120 },
   ["furnace"] = { handler = EntityHandlers.handle_furnace, ticks_per_cycle = 120 },

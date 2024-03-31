@@ -7,6 +7,7 @@ EntityGroups.names_to_groups = {}
 EntityGroups.entity_group_filters = {
   ["car"] =  { filter = "type", type = "car" },
   ["boiler"] =  { filter = "type", type = "boiler" },
+  ["burner-generator"] =  { filter = "type", type = "burner-generator" },
   ["furnace"] =  { filter = "type", type = "furnace" },
   ["mining-drill"] =  { filter = "type", type = "mining-drill" },
   ["artillery-turret"] =  { filter = "type", type = "artillery-turret" },

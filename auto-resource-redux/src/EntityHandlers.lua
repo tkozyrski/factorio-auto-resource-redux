@@ -298,6 +298,13 @@ function EntityHandlers.handle_boiler(o)
   return insert_fuel(o, true)
 end
 
+function EntityHandlers.handle_burner_generator(o)
+  if o.paused then
+    return false
+  end
+  return insert_fuel(o, true)
+end
+
 function EntityHandlers.handle_reactor(o)
   if o.paused then
     return false
