@@ -39,6 +39,7 @@ end
 local function insert_fluids(o, target_amounts, default_amount)
   default_amount = default_amount or 0
   local inserted = false
+  local fluidboxes = o.entity.fluidbox
   for i, fluid, filter, proto in Util.iter_fluidboxes(o.entity, "^", true) do
     if not filter or proto.production_type == "output" then
       goto continue
@@ -48,19 +49,19 @@ local function insert_fluids(o, target_amounts, default_amount)
     if target_amount <= 0 then
       goto continue
     end
-    local amount_needed = math.max(0, target_amount - fluid.amount)
+    local amount_can_insert = Util.clamp(target_amount - fluid.amount, 0, fluidboxes.get_capacity(i))
     local amount_removed = Storage.remove_fluid_in_temperature_range(
       o.storage,
       Storage.get_fluid_storage_key(filter.name),
       filter.minimum_temperature,
       filter.maximum_temperature,
-      amount_needed,
+      amount_can_insert,
       o.use_reserved
     )
     inserted = true
     -- We could compute the new temperature but recipes don't take the specific temperature into account
     fluid.amount = fluid.amount + amount_removed
-    o.entity.fluidbox[i] = fluid.amount > 0 and fluid or nil
+    fluidboxes[i] = fluid.amount > 0 and fluid or nil
     ::continue::
   end
   return inserted
