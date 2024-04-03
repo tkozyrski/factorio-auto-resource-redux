@@ -242,6 +242,9 @@ local function on_button_clicked(event, tags, player)
   local cursor_cleared = player.clear_cursor()
 
   local inventory = player.get_inventory(defines.inventory.character_main)
+  if not inventory then
+    return
+  end
   local amount_given = Storage.put_in_inventory(storage, inventory, storage_key, amount_to_give, true)
   update_gui(player)
 
