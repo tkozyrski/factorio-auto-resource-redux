@@ -89,6 +89,7 @@ sink_tank.pictures = {
     draw_as_glow = true
   }
 }
+sink_tank.se_allow_in_space = true
 
 local sink_tank_recipe = {
   enabled = true,

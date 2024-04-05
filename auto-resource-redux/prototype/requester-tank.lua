@@ -112,6 +112,7 @@ requester_tank.pictures = {
     shift = { 0, -0.5 },
   }
 }
+requester_tank.se_allow_in_space = true
 
 local requester_tank_recipe = {
   enabled = true,
