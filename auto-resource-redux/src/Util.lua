@@ -195,7 +195,7 @@ end
 ---@param order_comp_fn function|nil function that is used to compare the two order strings, defaults to a < b
 ---@return function comp comparison function to be used with table.sort
 function Util.prototype_order_comp_fn(get_prototype_fn, order_comp_fn)
-  order_comp_fn = order_comp_fn or function (a, b)
+  order_comp_fn = order_comp_fn or function(a, b)
     return a < b
   end
   return function(a, b)

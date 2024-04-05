@@ -4,7 +4,8 @@ local Storage = require "src.Storage"
 local Util = require "src.Util"
 
 local TICKS_PER_LOGISTIC_UPDATE = 90
-local TICKS_PER_ALERT_UPDATE = 60 * 2
+local TICKS_PER_ALERT_UPDATE = 10
+local ALERTS_TO_HANDLE_PER_UPDATE = 100
 local TICKS_PER_ALERT_TRANSFER = 60 * 10
 
 local function handle_requests(o, inventory, ammo_inventory, extra_stack)
@@ -103,7 +104,13 @@ local function handle_items_request(storage, player, entity, item_requests)
 
     for _, chest in ipairs(net.storages) do
       if chest.name == "arr-logistic-sink-chest" then
-        table.insert(chests, chest)
+        table.insert(
+          chests,
+          {
+            entity = chest,
+            dist = (entity_position.x - chest.position.x) ^ 2 + (entity_position.y - chest.position.y) ^ 2
+          }
+        )
       end
     end
 
@@ -117,9 +124,7 @@ local function handle_items_request(storage, player, entity, item_requests)
   table.sort(
     chests,
     function(a, b)
-      local dist_a = (entity_position.x - a.position.x) ^ 2 + (entity_position.y - a.position.y) ^ 2
-      local dist_b = (entity_position.x - b.position.x) ^ 2 + (entity_position.y - b.position.y) ^ 2
-      return dist_a < dist_b
+      return a.dist < b.dist
     end
   )
 
@@ -127,6 +132,7 @@ local function handle_items_request(storage, player, entity, item_requests)
   local gave_items = false
   for item_name, amount_to_give in pairs(item_requests) do
     for _, chest in ipairs(chests) do
+      chest = chest.entity
       local inventory = chest.get_inventory(defines.inventory.chest)
       local amount_given = Storage.put_in_inventory(storage, inventory, item_name, amount_to_give, true)
       if amount_given > 0 then
@@ -156,10 +162,11 @@ local function clean_up_deadline_table(deadlines)
   end
 end
 
-local function handle_player_alerts(player)
+local function handle_player_build_alerts(player)
   clean_up_deadline_table(global.alert_build_transfers)
   local storage = Storage.get_storage(player)
   local alerts = player.get_alerts({ type = defines.alert_type.no_material_for_construction })
+  local num_processed = 0
   for surface_id, alerts_by_type in pairs(alerts) do
     for _, alert in ipairs(alerts_by_type[defines.alert_type.no_material_for_construction]) do
       if alert.target == nil then
@@ -187,12 +194,20 @@ local function handle_player_alerts(player)
       if table_size(item_requests) > 0 then
         handle_items_request(storage, player, entity, item_requests)
       end
+      num_processed = num_processed + 1
+      if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
+        return
+      end
       ::continue::
     end
   end
+end
 
+local function handle_player_repair_alerts(player)
   clean_up_deadline_table(global.alert_repair_transfers)
-  alerts = player.get_alerts({ type = defines.alert_type.not_enough_repair_packs })
+  local storage = Storage.get_storage(player)
+  local alerts = player.get_alerts({ type = defines.alert_type.not_enough_repair_packs })
+  local num_processed = 0
   for surface_id, alerts_by_type in pairs(alerts) do
     for _, alert in ipairs(alerts_by_type[defines.alert_type.not_enough_repair_packs]) do
       if alert.target == nil then
@@ -204,6 +219,10 @@ local function handle_player_alerts(player)
       end
       -- TODO: don't hardcode repair pack item
       handle_items_request(storage, player, alert.target, { ["repair-pack"] = 1 })
+      num_processed = num_processed + 1
+      if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
+        return
+      end
       ::continue::
     end
   end
@@ -264,7 +283,8 @@ function LogisticManager.on_tick()
 
   _, player = Util.get_next_updatable("player_alerts", TICKS_PER_ALERT_UPDATE, game.connected_players)
   if player then
-    handle_player_alerts(player)
+    handle_player_build_alerts(player)
+    handle_player_repair_alerts(player)
   end
 end
 
