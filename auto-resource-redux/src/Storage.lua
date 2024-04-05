@@ -50,6 +50,12 @@ function Storage.get_storage(entity)
   return storage
 end
 
+function Storage.get_storage_for_surface(surface_id, entity)
+  local storage = DomainStore.get_subdomain(DomainStore.get_domain_key_raw(surface_id, entity.force.name), "storage", default_storage)
+  storage.last_entity = entity
+  return storage
+end
+
 function Storage.initialise()
   for name, item in pairs(game.item_prototypes) do
     if (item.type == "armor" and item.equipment_grid) or item.type == "item-with-entity-data" then

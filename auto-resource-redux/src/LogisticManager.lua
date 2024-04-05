@@ -164,10 +164,10 @@ end
 
 local function handle_player_build_alerts(player)
   clean_up_deadline_table(global.alert_build_transfers)
-  local storage = Storage.get_storage(player)
   local alerts = player.get_alerts({ type = defines.alert_type.no_material_for_construction })
   local num_processed = 0
   for surface_id, alerts_by_type in pairs(alerts) do
+    local storage = Storage.get_storage_for_surface(surface_id, player)
     for _, alert in ipairs(alerts_by_type[defines.alert_type.no_material_for_construction]) do
       if alert.target == nil then
         goto continue
@@ -205,10 +205,10 @@ end
 
 local function handle_player_repair_alerts(player)
   clean_up_deadline_table(global.alert_repair_transfers)
-  local storage = Storage.get_storage(player)
   local alerts = player.get_alerts({ type = defines.alert_type.not_enough_repair_packs })
   local num_processed = 0
   for surface_id, alerts_by_type in pairs(alerts) do
+    local storage = Storage.get_storage_for_surface(surface_id, player)
     for _, alert in ipairs(alerts_by_type[defines.alert_type.not_enough_repair_packs]) do
       if alert.target == nil then
         goto continue

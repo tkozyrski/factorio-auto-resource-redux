@@ -4,6 +4,10 @@ function DomainStore.get_domain_key(entity)
   return string.format("%d-%s", entity.surface.index, entity.force.name)
 end
 
+function DomainStore.get_domain_key_raw(surface_id, force_name)
+  return string.format("%d-%s", surface_id, force_name)
+end
+
 function DomainStore.get_subdomain(domain_key, subdomain_key, default_fn)
   local domain = global.domains[domain_key]
   if domain == nil then
