@@ -39,14 +39,14 @@ local function handle_entity(entity, handler)
     handler = entity_queue_specs[queue_key].handler
   end
   local entity_data = global.entity_data[entity.unit_number] or {}
-  local use_reserved = entity_data.use_reserved
   local storage = Storage.get_storage(entity)
   local running = not entity.to_be_deconstructed() and evaluate_condition(entity_data.condition, storage)
   return handler({
     entity = entity,
     storage = storage,
-    use_reserved = use_reserved,
-    paused = not running
+    use_reserved = entity_data.use_reserved,
+    paused = not running,
+    return_excess = entity_data.return_excess
   })
 end
 

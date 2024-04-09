@@ -12,6 +12,7 @@ local function handle_requests(o, inventory, ammo_inventory, extra_stack)
   local inventory_items = inventory.get_contents()
   local ammo_items = ammo_inventory and ammo_inventory.get_contents() or {}
   local total_inserted = 0
+  local requests = {}
   extra_stack = extra_stack or {}
   for i = 1, o.entity.request_slot_count do
     local request = o.entity.get_request_slot(i)
@@ -23,6 +24,7 @@ local function handle_requests(o, inventory, ammo_inventory, extra_stack)
         - (ammo_items[item_name] or 0)
         - (extra_stack[item_name] or 0)
       )
+
       if amount_needed > 0 then
         if ammo_inventory and ammo_inventory.can_insert(request) then
           local inserted = Storage.put_in_inventory(
@@ -33,15 +35,19 @@ local function handle_requests(o, inventory, ammo_inventory, extra_stack)
           amount_needed = amount_needed - inserted
           total_inserted = total_inserted + inserted
         end
-        total_inserted = total_inserted + Storage.put_in_inventory(
+        local inserted = Storage.put_in_inventory(
           o.storage, inventory,
           item_name, amount_needed,
           o.use_reserved
         )
+        amount_needed = amount_needed - inserted
+        total_inserted = total_inserted + inserted
       end
+
+      requests[request.name] = request.count
     end
   end
-  return total_inserted > 0
+  return total_inserted > 0, requests
 end
 
 local function handle_player_logistics(player)
@@ -243,7 +249,18 @@ function LogisticManager.handle_requester_chest(o)
     return false
   end
   local inventory = o.entity.get_inventory(defines.inventory.chest)
-  return handle_requests(o, inventory)
+  local busy, requests = handle_requests(o, inventory)
+  if o.return_excess then
+    local inventory_items = inventory.get_contents()
+    for item_name, count in pairs(inventory_items) do
+      local extra = count - (requests[item_name] or 0)
+      if extra > 0 then
+        local removed = inventory.remove({ name = item_name, count = extra })
+        Storage.add_item_or_fluid(o.storage, item_name, removed, true)
+      end
+    end
+  end
+  return busy
 end
 
 function LogisticManager.handle_spidertron_requests(o)

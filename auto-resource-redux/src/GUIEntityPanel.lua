@@ -19,6 +19,7 @@ local CONDITION_OP_EVENT = "arr-entity-panel-condition-op"
 local CONDITION_VALUE_BUTTON_EVENT = "arr-entity-panel-condition-button"
 local CONDITION_VALUE_CHANGED_EVENT = "arr-entity-panel-condition-value-changed"
 local FURNACE_RECIPE_EVENT = "arr-entity-panel-furnace-recipe"
+local RETURN_EXCESS_CHECKED_EVENT = "arr-entity-panel-return-excess"
 local SHOW_PRIORITY_GUI_EVENT = "arr-entity-panel-show-priority-gui"
 
 local EntityTypeGUIAnchors = {
@@ -175,6 +176,17 @@ local function add_gui_content(window, entity)
     caption = "%",
   })
 
+  if entity.name == "arr-logistic-requester-chest" then
+    local sub_frame = add_panel_frame(frame, "Requester Chest")
+    frame.add({
+      type = "checkbox",
+      caption = "Return excess items [img=info]",
+      tooltip = "Return items that are not requested or are above the requested amount",
+      state = (data.return_excess == true),
+      tags = { id = data_id, event = RETURN_EXCESS_CHECKED_EVENT }
+    })
+  end
+
   if entity.type == "furnace" then
     local sub_frame = add_panel_frame(
       frame,
@@ -248,7 +260,7 @@ local function add_gui_content(window, entity)
           entity = entity.name,
         }
       })
-      button.style.size = {24, 24}
+      button.style.size = { 24, 24 }
 
       for _, set_key in ipairs(set_keys) do
         local flow = inner_flow.add({
@@ -431,6 +443,10 @@ local function on_furnace_recipe_changed(event, tags, player)
   FurnaceRecipeManager.set_recipe(entity, new_recipe_name)
 end
 
+local function on_return_excess_checked(event, tags, player)
+  global.entity_data[tags.id].return_excess = event.element.state
+end
+
 local function on_show_priority_gui(event, tags, player)
   GUIItemPriority.open(player, tags.group, ItemPriorityManager.get_mapped_entity_name(tags.entity))
 end
@@ -450,6 +466,8 @@ GUIDispatcher.register(defines.events.on_gui_text_changed, CONDITION_VALUE_CHANG
 GUIDispatcher.register(defines.events.on_gui_confirmed, CONDITION_VALUE_CHANGED_EVENT, on_condition_value_confirmed)
 
 GUIDispatcher.register(defines.events.on_gui_elem_changed, FURNACE_RECIPE_EVENT, on_furnace_recipe_changed)
+
+GUIDispatcher.register(defines.events.on_gui_checked_state_changed, RETURN_EXCESS_CHECKED_EVENT, on_return_excess_checked)
 
 GUIDispatcher.register(defines.events.on_gui_click, SHOW_PRIORITY_GUI_EVENT, on_show_priority_gui)
 

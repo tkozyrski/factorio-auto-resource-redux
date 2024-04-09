@@ -253,6 +253,8 @@ local function add_item_or_fluid(storage, item_or_fluid_name, amount, ignore_lim
   return new_amount - (amount_stored or 0)
 end
 
+Storage.add_item_or_fluid = add_item_or_fluid
+
 local function decompose_and_store_stack(storage, stack, ignore_limit)
   local amount_to_store = stack.count
   if not ignore_limit then
