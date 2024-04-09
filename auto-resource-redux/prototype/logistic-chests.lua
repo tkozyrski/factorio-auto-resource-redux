@@ -71,6 +71,7 @@ sink_chest.animation = hole_glow_anim({ 1, 0.74, 0 })
 sink_chest.integration_patch = integration_patch("__auto-resource-redux__/graphics/sink-chest-integration.png")
 sink_chest.corpse = "arr-logistic-sink-chest-remnants"
 sink_chest.selection_box = selection_box
+sink_chest.render_not_in_network_icon = false
 
 local sink_chest_remnants = table.deepcopy(data.raw["corpse"]["storage-chest-remnants"])
 sink_chest_remnants.name = "arr-logistic-sink-chest-remnants"
@@ -97,6 +98,7 @@ request_chest.animation = hole_glow_anim({ 0, 0.74, 1 })
 request_chest.integration_patch = integration_patch("__auto-resource-redux__/graphics/requester-chest-integration.png")
 request_chest.corpse = "arr-logistic-requester-chest-remnants"
 request_chest.selection_box = selection_box
+request_chest.render_not_in_network_icon = false
 
 local request_chest_remnants = table.deepcopy(data.raw["corpse"]["requester-chest-remnants"])
 request_chest_remnants.name = "arr-logistic-requester-chest-remnants"
