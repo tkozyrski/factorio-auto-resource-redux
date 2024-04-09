@@ -14,7 +14,8 @@ function EntityCondition.evaluate(condition, storage)
   if type(amount_stored) == "table" then
     amount_stored = Util.table_min_val(amount_stored)
   end
-  local percent_stored = amount_stored / Storage.get_item_limit(storage, storage_key) * 100
+  local limit = Storage.get_item_limit(storage, storage_key) or 1
+  local percent_stored = amount_stored / limit * 100
   local op = condition.op or 1
   local value = condition.value or 0
   if op == 1 and percent_stored >= value then

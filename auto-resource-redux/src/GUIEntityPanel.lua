@@ -389,7 +389,7 @@ end
 local function on_condition_item_changed(event, tags, player)
   local signal = event.element.elem_value
   local storage_key = signal and (signal.type == "fluid" and Storage.get_fluid_storage_key(signal.name) or signal.name)
-  if signal and (signal.type == "virtual" or not Storage.can_store(storage_key)) then
+  if signal and signal.type == "virtual" then
     event.element.elem_value = nil
     return
   end
