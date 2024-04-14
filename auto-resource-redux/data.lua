@@ -1,5 +1,6 @@
 require "prototype.icons"
 
+require "prototype.combinator"
 require "prototype.hidden-sink-chest"
 require "prototype.sink-tank"
 require "prototype.requester-tank"

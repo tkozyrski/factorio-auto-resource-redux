@@ -421,4 +421,33 @@ function EntityHandlers.handle_requester_tank(o)
   return false
 end
 
+function EntityHandlers.handle_storage_combinator(o)
+  local entity = o.entity
+  local cb = entity.get_control_behavior()
+  if o.paused or not cb.enabled then
+    cb.parameters = {}
+    return true
+  end
+
+  local params = {}
+  local i = 1
+  for name, count in pairs(o.storage.items) do
+    local fluid_name = Storage.unpack_fluid_item_name(name)
+    table.insert(
+      params,
+      {
+        signal = {
+          type = fluid_name and "fluid" or "item",
+          name = fluid_name or name
+        },
+        count = fluid_name and Util.table_sum_vals(count) or count,
+        index = i
+      }
+    )
+    i = i + 1
+  end
+  cb.parameters = params
+  return true
+end
+
 return EntityHandlers

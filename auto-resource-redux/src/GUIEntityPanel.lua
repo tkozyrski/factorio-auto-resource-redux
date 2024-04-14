@@ -36,7 +36,8 @@ local EntityTypeGUIAnchors = {
   ["reactor"] = defines.relative_gui_type.reactor_gui,
   ["storage-tank"] = defines.relative_gui_type.storage_tank_gui,
   ["rocket-silo"] = defines.relative_gui_type.rocket_silo_gui,
-  ["spider-vehicle"] = defines.relative_gui_type.spider_vehicle_gui
+  ["spider-vehicle"] = defines.relative_gui_type.spider_vehicle_gui,
+  ["constant-combinator"] = defines.relative_gui_type.constant_combinator_gui,
 }
 
 function GUIEntityPanel.initialise()

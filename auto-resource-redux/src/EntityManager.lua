@@ -31,6 +31,7 @@ local entity_queue_specs = {
   ["furnace"] = { handler = EntityHandlers.handle_furnace, ticks_per_cycle = 120 },
   ["assembling-machine"] = { handler = EntityHandlers.handle_assembler, ticks_per_cycle = 120 },
   ["lab"] = { handler = EntityHandlers.handle_lab, ticks_per_cycle = 120 },
+  ["arr-combinator"] = { handler = EntityHandlers.handle_storage_combinator, ticks_per_cycle = 12 },
 }
 
 local function handle_entity(entity, handler)
