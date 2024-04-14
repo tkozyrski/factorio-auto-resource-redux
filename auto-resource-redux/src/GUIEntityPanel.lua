@@ -11,6 +11,7 @@ local GUIItemPriority = require "src.GUIItemPriority"
 local ItemPriorityManager = require "src.ItemPriorityManager"
 local R = require "src.RichText"
 local Storage = require "src.Storage"
+local Util = require "src.Util"
 
 local GUI_CLOSE_EVENT = "arr-entity-panel-close"
 local PRIORITISE_CHECKED_EVENT = "arr-entity-panel-prioritise"
@@ -18,6 +19,8 @@ local CONDITION_ITEM_EVENT = "arr-entity-panel-condition-item"
 local CONDITION_OP_EVENT = "arr-entity-panel-condition-op"
 local CONDITION_VALUE_BUTTON_EVENT = "arr-entity-panel-condition-button"
 local CONDITION_VALUE_CHANGED_EVENT = "arr-entity-panel-condition-value-changed"
+local CONDITION_SURFACE_CHANGED_EVENT = "arr-entity-panel-condition-surface-changed"
+local CONDITION_SURFACE_RESET_EVENT = "arr-entity-panel-condition-surface-reset"
 local FURNACE_RECIPE_EVENT = "arr-entity-panel-furnace-recipe"
 local RETURN_EXCESS_CHECKED_EVENT = "arr-entity-panel-return-excess"
 local SHOW_PRIORITY_GUI_EVENT = "arr-entity-panel-show-priority-gui"
@@ -176,6 +179,45 @@ local function add_gui_content(window, entity)
     type = "label",
     caption = "%",
   })
+
+  local surface_names = Util.table_keys(game.surfaces)
+  local current_surface = condition.surface or entity.surface.name
+  local current_surface_i = flib_table.find(surface_names, current_surface)
+  if current_surface_i == nil then
+    table.insert(surface_names, ("%s%s (not found)%s"):format(R.COLOUR_RED, current_surface, R.COLOUR_END))
+    current_surface_i = #surface_names
+  end
+  if table_size(surface_names) > 1 then
+    local condition_surface_flow = condition_frame.add({
+      type = "flow",
+      direction = "horizontal"
+    })
+    condition_surface_flow.style.vertical_align = "center"
+
+    condition_surface_flow.add({
+      type = "label",
+      style = "heading_2_label",
+      caption = "Storage source [img=info]",
+      tooltip = "The surface of the storage to use when checking the condition"
+    })
+
+    local button = condition_surface_flow.add({
+      type = "sprite-button",
+      resize_to_sprite = false,
+      sprite = "utility/reset_white",
+      tooltip = "Click to reset to current surface",
+      tags = { id = data_id, event = CONDITION_SURFACE_RESET_EVENT }
+    })
+    button.style.size = { 24, 24 }
+
+    condition_frame.add({
+      type = "drop-down",
+      name = "condition_surface",
+      items = surface_names,
+      selected_index = current_surface_i,
+      tags = { id = data_id, event = CONDITION_SURFACE_CHANGED_EVENT }
+    })
+  end
 
   if entity.name == "arr-logistic-requester-chest" then
     local sub_frame = add_panel_frame(frame, "Requester Chest")
@@ -433,6 +475,18 @@ local function on_condition_value_confirmed(event, tags, player)
   slider_flow.visible = false
 end
 
+local function on_condition_surface_changed(event, tags, player)
+  local surface_name = event.element.items[event.element.selected_index]
+  global.entity_data[tags.id].condition.surface = surface_name
+end
+
+local function on_condition_surface_reset_clicked(event, tags, player)
+  local dropdown = event.element.parent.parent.condition_surface
+  local entity = global.entities[tags.id]
+  dropdown.selected_index = flib_table.find(dropdown.items, entity.surface.name)
+  global.entity_data[tags.id].condition.surface = nil
+end
+
 local function on_furnace_recipe_changed(event, tags, player)
   local new_recipe_name = event.element.elem_value
   local entity = global.entities[tags.id]
@@ -465,6 +519,8 @@ GUIDispatcher.register(defines.events.on_gui_click, CONDITION_VALUE_BUTTON_EVENT
 GUIDispatcher.register(defines.events.on_gui_value_changed, CONDITION_VALUE_CHANGED_EVENT, on_condition_value_changed)
 GUIDispatcher.register(defines.events.on_gui_text_changed, CONDITION_VALUE_CHANGED_EVENT, on_condition_value_changed)
 GUIDispatcher.register(defines.events.on_gui_confirmed, CONDITION_VALUE_CHANGED_EVENT, on_condition_value_confirmed)
+GUIDispatcher.register(defines.events.on_gui_selection_state_changed, CONDITION_SURFACE_CHANGED_EVENT, on_condition_surface_changed)
+GUIDispatcher.register(defines.events.on_gui_click, CONDITION_SURFACE_RESET_EVENT, on_condition_surface_reset_clicked)
 
 GUIDispatcher.register(defines.events.on_gui_elem_changed, FURNACE_RECIPE_EVENT, on_furnace_recipe_changed)
 

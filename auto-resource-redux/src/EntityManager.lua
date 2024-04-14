@@ -41,7 +41,7 @@ local function handle_entity(entity, handler, cache_table)
   end
   local entity_data = global.entity_data[entity.unit_number] or {}
   local storage = Storage.get_storage(entity)
-  local running = not entity.to_be_deconstructed() and evaluate_condition(entity_data.condition, storage)
+  local running = not entity.to_be_deconstructed() and evaluate_condition(entity, entity_data.condition, storage)
   return handler({
     entity = entity,
     storage = storage,

@@ -5,10 +5,18 @@ local Util = require "src.Util"
 EntityCondition.OPERATIONS = { "≥", "≤" }
 
 -- TODO: draw paused indicator
-function EntityCondition.evaluate(condition, storage)
+function EntityCondition.evaluate(entity, condition, storage)
   if not condition or not condition.item then
     return true
   end
+
+  if condition.surface and condition.surface ~= entity.surface.name then
+    local surface = game.surfaces[condition.surface]
+    if surface then
+      storage = Storage.get_storage_for_surface(surface.index, entity)
+    end
+  end
+
   local storage_key = condition.item
   local amount_stored = storage.items[storage_key] or 0
   if type(amount_stored) == "table" then
