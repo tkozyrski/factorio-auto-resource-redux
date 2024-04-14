@@ -429,6 +429,12 @@ function EntityHandlers.handle_storage_combinator(o)
     return true
   end
 
+  local cache, cache_key = o.cache, o.storage.domain_key
+  if cache[cache_key] then
+    cb.parameters = cache[cache_key]
+    return true
+  end
+
   local params = {}
   local i = 1
   for name, count in pairs(o.storage.items) do
@@ -447,6 +453,7 @@ function EntityHandlers.handle_storage_combinator(o)
     i = i + 1
   end
   cb.parameters = params
+  cache[cache_key] = params
   return true
 end
 

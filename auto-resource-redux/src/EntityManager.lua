@@ -34,7 +34,7 @@ local entity_queue_specs = {
   ["arr-combinator"] = { handler = EntityHandlers.handle_storage_combinator, ticks_per_cycle = 12 },
 }
 
-local function handle_entity(entity, handler)
+local function handle_entity(entity, handler, cache_table)
   if not handler then
     local queue_key = EntityGroups.names_to_groups[entity.name]
     handler = entity_queue_specs[queue_key].handler
@@ -47,7 +47,8 @@ local function handle_entity(entity, handler)
     storage = storage,
     use_reserved = entity_data.use_reserved,
     paused = not running,
-    return_excess = entity_data.return_excess
+    return_excess = entity_data.return_excess,
+    cache = cache_table or {}
   })
 end
 
@@ -131,6 +132,7 @@ function EntityManager.on_tick()
     end
 
     local num_processed = 0
+    local cache_table = {}
     repeat
       if queue.size == 0 then
         break
@@ -141,7 +143,7 @@ function EntityManager.on_tick()
         on_entity_removed(entity_id)
         LoopBuffer.remove_current(queue)
       else
-        if handle_entity(entity, spec.handler) then
+        if handle_entity(entity, spec.handler, cache_table) then
           busy_counters[queue_key] = (busy_counters[queue_key] or 0) + 1
         end
         num_processed = num_processed + 1
