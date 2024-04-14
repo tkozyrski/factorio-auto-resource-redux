@@ -12,9 +12,10 @@ function EntityCondition.evaluate(entity, condition, storage)
 
   if condition.surface and condition.surface ~= entity.surface.name then
     local surface = game.surfaces[condition.surface]
-    if surface then
-      storage = Storage.get_storage_for_surface(surface.index, entity)
+    if not surface then
+      return false
     end
+    storage = Storage.get_storage_for_surface(surface.index, entity)
   end
 
   local storage_key = condition.item
