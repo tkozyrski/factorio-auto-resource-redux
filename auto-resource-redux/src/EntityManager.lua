@@ -48,6 +48,7 @@ local function handle_entity(entity, handler, cache_table)
     use_reserved = entity_data.use_reserved,
     paused = not running,
     return_excess = entity_data.return_excess,
+    condition = entity_data.condition,
     cache = cache_table or {}
   })
 end

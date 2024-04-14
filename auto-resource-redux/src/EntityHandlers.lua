@@ -3,6 +3,7 @@ local EntityHandlers = {}
 -- seconds to attempt to keep assemblers fed for
 local TARGET_INGREDIENT_CRAFT_TIME = 2
 
+local EntityCondition = require "src.EntityCondition"
 local FurnaceRecipeManager = require "src.FurnaceRecipeManager"
 local ItemPriorityManager = require "src.ItemPriorityManager"
 local LogisticManager = require "src.LogisticManager"
@@ -429,7 +430,13 @@ function EntityHandlers.handle_storage_combinator(o)
     return true
   end
 
-  local cache, cache_key = o.cache, o.storage.domain_key
+  local storage = EntityCondition.get_selected_storage(entity, o.condition, o.storage)
+  if not storage then
+    cb.parameters = {}
+    return true
+  end
+
+  local cache, cache_key = o.cache, storage.domain_key
   if cache[cache_key] then
     cb.parameters = cache[cache_key]
     return true
@@ -437,7 +444,7 @@ function EntityHandlers.handle_storage_combinator(o)
 
   local params = {}
   local i = 1
-  for name, count in pairs(o.storage.items) do
+  for name, count in pairs(storage.items) do
     local fluid_name = Storage.unpack_fluid_item_name(name)
     table.insert(
       params,

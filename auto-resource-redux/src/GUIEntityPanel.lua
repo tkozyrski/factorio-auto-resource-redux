@@ -198,7 +198,7 @@ local function add_gui_content(window, entity)
       type = "label",
       style = "heading_2_label",
       caption = "Storage source [img=info]",
-      tooltip = "The surface of the storage to use when checking the condition"
+      tooltip = "The surface of the storage to use when checking the condition, and reading signals (for [entity=arr-combinator] Auto Resource Combinators)"
     })
 
     local button = condition_surface_flow.add({
