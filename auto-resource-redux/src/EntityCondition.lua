@@ -21,7 +21,7 @@ function EntityCondition.evaluate(entity, condition, storage)
     return true
   end
 
-  storage = EntityCondition.get_selected_storage(entity, condition)
+  storage = EntityCondition.get_selected_storage(entity, condition, storage)
   if not storage then
     return false
   end
