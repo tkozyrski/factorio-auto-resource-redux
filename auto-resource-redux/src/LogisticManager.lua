@@ -92,10 +92,6 @@ local function handle_player_logistics(player)
   )
 end
 
-local function get_entity_key(entity)
-  return entity.unit_number or string.format("%s,%s", entity.position.x, entity.position.y)
-end
-
 local function handle_items_request(storage, force, entity, item_requests)
   for item_name, needed_count in pairs(item_requests) do
     local amount_can_give = math.min(storage.items[item_name] or 0, needed_count)
@@ -170,15 +166,14 @@ local function clean_up_deadline_table(deadlines)
   end
 end
 
-local function handle_build_alert(alert, storage, force)
+local function handle_build_alert(alert, alert_key, storage, force)
   if alert.target == nil then
     return false
   end
-  local entity = alert.target
-  local alert_key = get_entity_key(entity)
-  if global.alert_build_transfers[alert_key] then
+  if global.alert_item_transfers[alert_key] then
     return false
   end
+  local entity = alert.target
   local item_requests = {}
   if entity.type == "entity-ghost" or entity.type == "tile-ghost" then
     local stack = entity.ghost_prototype.items_to_place_this[1]
@@ -196,26 +191,30 @@ local function handle_build_alert(alert, storage, force)
   end
   if table_size(item_requests) > 0 then
     if handle_items_request(storage, force, entity, item_requests) then
-      global.alert_build_transfers[alert_key] = game.tick + TICKS_PER_ALERT_TRANSFER
+      global.alert_item_transfers[alert_key] = game.tick + TICKS_PER_ALERT_TRANSFER
     end
     return true
   end
   return false
 end
 
-local function handle_repair_alert(alert, storage, force)
+local function handle_repair_alert(alert, alert_key, storage, force)
   if alert.target == nil then
     return false
   end
-  local alert_key = get_entity_key(alert.target)
-  if global.alert_repair_transfers[alert_key] then
+  if global.alert_item_transfers[alert_key] then
     return false
   end
   -- TODO: don't hardcode repair pack item
   if handle_items_request(storage, force, alert.target, { ["repair-pack"] = 1 }) then
-    global.alert_repair_transfers[alert_key] = game.tick + TICKS_PER_ALERT_TRANSFER
+    global.alert_item_transfers[alert_key] = game.tick + TICKS_PER_ALERT_TRANSFER
   end
   return true
+end
+
+local function get_alert_key(alert_type, surface_id, entity)
+  local entity_id = entity.unit_number or string.format("%d,%d", entity.position.x, entity.position.y)
+  return string.format("%d,%d,%d", alert_type, surface_id, entity_id)
 end
 
 local function handle_player_alerts(player, alert_type, handler_fn)
@@ -225,7 +224,8 @@ local function handle_player_alerts(player, alert_type, handler_fn)
   for surface_id, alerts_by_type in pairs(alerts) do
     local storage = Storage.get_storage_for_surface(surface_id, player)
     for _, alert in ipairs(alerts_by_type[alert_type]) do
-      if handler_fn(alert, storage, force) then
+      local alert_key = get_alert_key(alert_type, surface_id, alert.target)
+      if handler_fn(alert, alert_key, storage, force) then
         num_processed = num_processed + 1
         if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
           return
@@ -282,11 +282,8 @@ function LogisticManager.handle_spidertron_requests(o)
 end
 
 function LogisticManager.initialise()
-  if global.alert_build_transfers == nil then
-    global.alert_build_transfers = {}
-  end
-  if global.alert_repair_transfers == nil then
-    global.alert_repair_transfers = {}
+  if global.alert_item_transfers == nil then
+    global.alert_item_transfers = {}
   end
   if global.busy_logistic_chests == nil then
     global.busy_logistic_chests = {}
@@ -301,9 +298,8 @@ function LogisticManager.on_tick()
 
   _, player = Util.get_next_updatable("player_alerts", TICKS_PER_ALERT_UPDATE, game.connected_players)
   if player then
-    clean_up_deadline_table(global.alert_build_transfers)
+    clean_up_deadline_table(global.alert_item_transfers)
     handle_player_alerts(player, defines.alert_type.no_material_for_construction, handle_build_alert)
-    clean_up_deadline_table(global.alert_repair_transfers)
     handle_player_alerts(player, defines.alert_type.not_enough_repair_packs, handle_repair_alert)
   end
 end
