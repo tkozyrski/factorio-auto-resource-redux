@@ -352,7 +352,8 @@ local function on_gui_opened(event, tags, player)
     -- this might be incorrect, but should be corrected on the next tick
     local location_key = get_location_key(player, entity.name)
     last_position = global.entity_panel_location[location_key] or last_position
-    if last_position then
+    local res = player.display_resolution
+    if last_position and last_position.x + 100 < res.width and last_position.y + 100 < res.height then
       window.location = last_position
     else
       window.force_auto_center()
