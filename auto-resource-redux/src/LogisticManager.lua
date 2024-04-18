@@ -3,10 +3,16 @@ local LogisticManager = {}
 local Storage = require "src.Storage"
 local Util = require "src.Util"
 
+-- Ticks between handling player logistics
 local TICKS_PER_LOGISTIC_UPDATE = 90
+
+-- Ticks between checking alerts
 local TICKS_PER_ALERT_UPDATE = 10
+-- Number of alerts to handle each time alerts are checked
 local ALERTS_TO_HANDLE_PER_UPDATE = 100
-local TICKS_PER_ALERT_TRANSFER = 60 * 10
+-- How to long to wait before transferring items for an alert again
+-- (also how long to prevent the chest from sucking items back up)
+local TICKS_PER_ALERT_TRANSFER = 610
 
 local function handle_requests(o, inventory, ammo_inventory, extra_stack)
   local inventory_items = inventory.get_contents()
@@ -90,7 +96,7 @@ local function get_entity_key(entity)
   return entity.unit_number or string.format("%s,%s", entity.position.x, entity.position.y)
 end
 
-local function handle_items_request(storage, player, entity, item_requests)
+local function handle_items_request(storage, force, entity, item_requests)
   for item_name, needed_count in pairs(item_requests) do
     local amount_can_give = math.min(storage.items[item_name] or 0, needed_count)
     item_requests[item_name] = amount_can_give > 0 and amount_can_give or nil
@@ -101,7 +107,7 @@ local function handle_items_request(storage, player, entity, item_requests)
 
   -- find all chests from networks that can handle the requests
   local entity_position = entity.position
-  local nets = entity.surface.find_logistic_networks_by_construction_area(entity_position, player.force)
+  local nets = entity.surface.find_logistic_networks_by_construction_area(entity_position, force)
   local chests = {}
   for _, net in ipairs(nets) do
     if net.available_construction_robots == 0 then
@@ -153,11 +159,7 @@ local function handle_items_request(storage, player, entity, item_requests)
     end
   end
 
-  if gave_items then
-    global.alert_build_transfers[get_entity_key(entity)] = game.tick + TICKS_PER_ALERT_TRANSFER
-    return true
-  end
-  return false
+  return gave_items
 end
 
 local function clean_up_deadline_table(deadlines)
@@ -168,68 +170,67 @@ local function clean_up_deadline_table(deadlines)
   end
 end
 
-local function handle_player_build_alerts(player)
-  clean_up_deadline_table(global.alert_build_transfers)
-  local alerts = player.get_alerts({ type = defines.alert_type.no_material_for_construction })
-  local num_processed = 0
-  for surface_id, alerts_by_type in pairs(alerts) do
-    local storage = Storage.get_storage_for_surface(surface_id, player)
-    for _, alert in ipairs(alerts_by_type[defines.alert_type.no_material_for_construction]) do
-      if alert.target == nil then
-        goto continue
-      end
-      local entity = alert.target
-      if global.alert_build_transfers[get_entity_key(entity)] then
-        goto continue
-      end
-      local item_requests = {}
-      if entity.type == "entity-ghost" or entity.type == "tile-ghost" then
-        local stack = entity.ghost_prototype.items_to_place_this[1]
-        item_requests[stack.name] = stack.count
-      elseif entity.type == "cliff" then
-        item_requests[entity.prototype.cliff_explosive_prototype] = 1
-      elseif entity.type == "item-request-proxy" then
-        item_requests = entity.item_requests
-      else
-        local upgrade_proto = entity.get_upgrade_target()
-        if upgrade_proto then
-          local stack = upgrade_proto.items_to_place_this[1]
-          item_requests[stack.name] = stack.count
-        end
-      end
-      if table_size(item_requests) > 0 then
-        handle_items_request(storage, player, entity, item_requests)
-      end
-      num_processed = num_processed + 1
-      if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
-        return
-      end
-      ::continue::
+local function handle_build_alert(alert, storage, force)
+  if alert.target == nil then
+    return false
+  end
+  local entity = alert.target
+  local alert_key = get_entity_key(entity)
+  if global.alert_build_transfers[alert_key] then
+    return false
+  end
+  local item_requests = {}
+  if entity.type == "entity-ghost" or entity.type == "tile-ghost" then
+    local stack = entity.ghost_prototype.items_to_place_this[1]
+    item_requests[stack.name] = stack.count
+  elseif entity.type == "cliff" then
+    item_requests[entity.prototype.cliff_explosive_prototype] = 1
+  elseif entity.type == "item-request-proxy" then
+    item_requests = entity.item_requests
+  else
+    local upgrade_proto = entity.get_upgrade_target()
+    if upgrade_proto then
+      local stack = upgrade_proto.items_to_place_this[1]
+      item_requests[stack.name] = stack.count
     end
   end
+  if table_size(item_requests) > 0 then
+    if handle_items_request(storage, force, entity, item_requests) then
+      global.alert_build_transfers[alert_key] = game.tick + TICKS_PER_ALERT_TRANSFER
+    end
+    return true
+  end
+  return false
 end
 
-local function handle_player_repair_alerts(player)
-  clean_up_deadline_table(global.alert_repair_transfers)
-  local alerts = player.get_alerts({ type = defines.alert_type.not_enough_repair_packs })
+local function handle_repair_alert(alert, storage, force)
+  if alert.target == nil then
+    return false
+  end
+  local alert_key = get_entity_key(alert.target)
+  if global.alert_repair_transfers[alert_key] then
+    return false
+  end
+  -- TODO: don't hardcode repair pack item
+  if handle_items_request(storage, force, alert.target, { ["repair-pack"] = 1 }) then
+    global.alert_repair_transfers[alert_key] = game.tick + TICKS_PER_ALERT_TRANSFER
+  end
+  return true
+end
+
+local function handle_player_alerts(player, alert_type, handler_fn)
+  local force = player.force
+  local alerts = player.get_alerts({ type = alert_type })
   local num_processed = 0
   for surface_id, alerts_by_type in pairs(alerts) do
     local storage = Storage.get_storage_for_surface(surface_id, player)
-    for _, alert in ipairs(alerts_by_type[defines.alert_type.not_enough_repair_packs]) do
-      if alert.target == nil then
-        goto continue
+    for _, alert in ipairs(alerts_by_type[alert_type]) do
+      if handler_fn(alert, storage, force) then
+        num_processed = num_processed + 1
+        if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
+          return
+        end
       end
-      local alert_key = get_entity_key(alert.target)
-      if global.alert_repair_transfers[alert_key] then
-        goto continue
-      end
-      -- TODO: don't hardcode repair pack item
-      handle_items_request(storage, player, alert.target, { ["repair-pack"] = 1 })
-      num_processed = num_processed + 1
-      if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
-        return
-      end
-      ::continue::
     end
   end
 end
@@ -300,8 +301,10 @@ function LogisticManager.on_tick()
 
   _, player = Util.get_next_updatable("player_alerts", TICKS_PER_ALERT_UPDATE, game.connected_players)
   if player then
-    handle_player_build_alerts(player)
-    handle_player_repair_alerts(player)
+    clean_up_deadline_table(global.alert_build_transfers)
+    handle_player_alerts(player, defines.alert_type.no_material_for_construction, handle_build_alert)
+    clean_up_deadline_table(global.alert_repair_transfers)
+    handle_player_alerts(player, defines.alert_type.not_enough_repair_packs, handle_repair_alert)
   end
 end
 
