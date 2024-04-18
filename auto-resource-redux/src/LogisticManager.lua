@@ -217,20 +217,40 @@ local function get_alert_key(alert_type, surface_id, entity)
   return string.format("%d,%d,%d", alert_type, surface_id, entity_id)
 end
 
-local function handle_player_alerts(player, alert_type, handler_fn)
+local function handle_player_alerts(player, handled_surfaces, alert_type, handler_fn)
   local force = player.force
   local alerts = player.get_alerts({ type = alert_type })
   local num_processed = 0
   for surface_id, alerts_by_type in pairs(alerts) do
     local storage = Storage.get_storage_for_surface(surface_id, player)
+    local handled_alerts = global.handled_alerts[surface_id]
+    if not handled_alerts then
+      handled_alerts = {}
+      global.handled_alerts[surface_id] = handled_alerts
+    end
+
     for _, alert in ipairs(alerts_by_type[alert_type]) do
       local alert_key = get_alert_key(alert_type, surface_id, alert.target)
+      if handled_alerts[alert_key] then
+        goto continue
+      end
+      handled_alerts[alert_key] = true
+      handled_surfaces[surface_id] = true
       if handler_fn(alert, alert_key, storage, force) then
         num_processed = num_processed + 1
         if num_processed >= ALERTS_TO_HANDLE_PER_UPDATE then
           return
         end
       end
+      ::continue::
+    end
+  end
+
+  -- clear list of handled alerts for surfaces that had nothing to handle
+  -- this will restart the alert handling from the beginning
+  for surface_id, _ in pairs(global.handled_alerts) do
+    if not handled_surfaces[surface_id] then
+      global.handled_alerts[surface_id] = {}
     end
   end
 end
@@ -285,6 +305,9 @@ function LogisticManager.initialise()
   if global.alert_item_transfers == nil then
     global.alert_item_transfers = {}
   end
+  if global.handled_alerts == nil then
+    global.handled_alerts = {}
+  end
   if global.busy_logistic_chests == nil then
     global.busy_logistic_chests = {}
   end
@@ -299,8 +322,9 @@ function LogisticManager.on_tick()
   _, player = Util.get_next_updatable("player_alerts", TICKS_PER_ALERT_UPDATE, game.connected_players)
   if player then
     clean_up_deadline_table(global.alert_item_transfers)
-    handle_player_alerts(player, defines.alert_type.no_material_for_construction, handle_build_alert)
-    handle_player_alerts(player, defines.alert_type.not_enough_repair_packs, handle_repair_alert)
+    local handled_surfaces = {}
+    handle_player_alerts(player, handled_surfaces, defines.alert_type.no_material_for_construction, handle_build_alert)
+    handle_player_alerts(player, handled_surfaces, defines.alert_type.not_enough_repair_packs, handle_repair_alert)
   end
 end
 
