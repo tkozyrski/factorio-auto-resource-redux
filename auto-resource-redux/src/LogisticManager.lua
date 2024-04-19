@@ -214,7 +214,7 @@ end
 
 local function get_alert_key(alert_type, surface_id, entity)
   local entity_id = entity.unit_number or string.format("%d,%d", entity.position.x, entity.position.y)
-  return string.format("%d,%d,%d", alert_type, surface_id, entity_id)
+  return string.format("%d,%d,%s", alert_type, surface_id, entity_id)
 end
 
 local function handle_player_alerts(player, handled_surfaces, alert_type, handler_fn)
