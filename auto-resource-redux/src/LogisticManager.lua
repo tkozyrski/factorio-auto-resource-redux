@@ -213,6 +213,9 @@ local function handle_repair_alert(alert, alert_key, storage, force)
 end
 
 local function get_alert_key(alert_type, surface_id, entity)
+  if not entity then
+    return nil
+  end
   local entity_id = entity.unit_number or string.format("%d,%d", entity.position.x, entity.position.y)
   return string.format("%d,%d,%s", alert_type, surface_id, entity_id)
 end
@@ -231,7 +234,7 @@ local function handle_player_alerts(player, handled_surfaces, alert_type, handle
 
     for _, alert in ipairs(alerts_by_type[alert_type]) do
       local alert_key = get_alert_key(alert_type, surface_id, alert.target)
-      if handled_alerts[alert_key] then
+      if not alert_key or handled_alerts[alert_key] then
         goto continue
       end
       handled_alerts[alert_key] = true
