@@ -51,7 +51,7 @@ local function insert_fluids(o, target_amounts, default_amount)
       goto continue
     end
     local amount_can_insert = Util.clamp(target_amount - fluid.amount, 0, fluidboxes.get_capacity(i))
-    local amount_removed = Storage.remove_fluid_in_temperature_range(
+    local amount_removed, new_temperature = Storage.remove_fluid_in_temperature_range(
       o.storage,
       Storage.get_fluid_storage_key(filter.name),
       filter.minimum_temperature,
@@ -60,7 +60,7 @@ local function insert_fluids(o, target_amounts, default_amount)
       o.use_reserved
     )
     inserted = true
-    -- We could compute the new temperature but recipes don't take the specific temperature into account
+    fluid.temperature = Util.weighted_average(fluid.temperature, fluid.amount, new_temperature, amount_removed)
     fluid.amount = fluid.amount + amount_removed
     fluidboxes[i] = fluid.amount > 0 and fluid or nil
     ::continue::
