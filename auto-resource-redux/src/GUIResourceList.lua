@@ -10,6 +10,8 @@ local Util = require "src.Util"
 
 
 local OLD_GUI_RESOURCE_TABLE = "arr-table"
+-- used to check if the resource table needs to be recreated
+local RESOURCE_TABLE_VERSION = 1
 local TICKS_PER_UPDATE = 12
 local RES_BUTTON_EVENT = "arr-res-btn"
 -- { [storage_key] = order int }
@@ -33,7 +35,8 @@ function GUIResourceList.get_or_create_button(player, storage_key)
   local table_flow = gui_top[GUICommon.GUI_RESOURCE_TABLE] or gui_top.add({
     type = "flow",
     direction = "vertical",
-    name = GUICommon.GUI_RESOURCE_TABLE
+    name = GUICommon.GUI_RESOURCE_TABLE,
+    tags = { version = RESOURCE_TABLE_VERSION }
   })
 
   local group_name = storage_keys_groups[storage_key]
@@ -41,7 +44,8 @@ function GUIResourceList.get_or_create_button(player, storage_key)
     type = "table",
     column_count = 20,
     name = group_name,
-    index = find_gui_index_for(table_flow, storage_keys_group_order, group_name)
+    index = find_gui_index_for(table_flow, storage_keys_group_order, group_name),
+    style = "logistics_slot_table"
   })
 
   local button = table_elem[storage_key] or GUICommon.create_item_button(
@@ -65,6 +69,10 @@ local function update_gui(player)
   local gui_top = player.gui.top
   local old_table = gui_top[OLD_GUI_RESOURCE_TABLE]
   if old_table then
+    old_table.destroy()
+  end
+  old_table = gui_top[GUICommon.GUI_RESOURCE_TABLE]
+  if old_table and old_table.tags.version ~= RESOURCE_TABLE_VERSION then
     old_table.destroy()
   end
 
