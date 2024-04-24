@@ -224,12 +224,10 @@ local function on_fluid_changed(event, tags, player)
   local fluid = event.element.elem_value
   local default_temp = fluid and game.fluid_prototypes[fluid].default_temperature or nil
   local data = global.entity_data[tags.id]
-  global.entity_data[tags.id] = {
-    fluid = fluid,
-    percent = data.percent or 5,
-    min_temp = default_temp,
-    max_temp = data.max_temp and default_temp or nil
-  }
+  data.fluid = fluid
+  data.percent = data.percent or 5
+  data.min_temp = default_temp
+  data.max_temp = data.max_temp and default_temp or nil
   local controls_flow = event.element.parent.parent
   update_controls(tags.id, controls_flow)
   player.gui.screen[GUICommon.GUI_REQUESTER_TANK].force_auto_center()
