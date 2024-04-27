@@ -175,7 +175,7 @@ function EntityManager.on_entity_created(event)
   if entity == nil then
     entity = event.entity
   end
-  if global.forces == nil or global.forces[entity.force.name] == nil then
+  if global.forces[entity.force.name] == nil then
     return
   end
   local queue_key = manage_entity(entity, true)
