@@ -49,11 +49,17 @@ local function on_tick()
 end
 
 local function on_built(event)
+  if not initialised then
+    return
+  end
   EntityManager.on_entity_created(event)
   EntityCustomData.on_built(event)
 end
 
 local function on_cloned(event)
+  if not initialised then
+    return
+  end
   EntityManager.on_entity_created(event)
   EntityCustomData.on_cloned(event)
 end
