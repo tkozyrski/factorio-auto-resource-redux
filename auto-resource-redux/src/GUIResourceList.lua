@@ -76,6 +76,11 @@ local function update_gui(player)
     old_table.destroy()
   end
 
+  local table_flow = gui_top[GUICommon.GUI_RESOURCE_TABLE]
+  if table_flow and not table_flow.visible then
+    return
+  end
+
   local expected_buttons = {}
   for storage_key, count in pairs(storage.items) do
     local button, group_name = GUIResourceList.get_or_create_button(player, storage_key)
@@ -146,7 +151,6 @@ local function update_gui(player)
   end
 
   -- remove unexpected buttons
-  local table_flow = gui_top[GUICommon.GUI_RESOURCE_TABLE]
   if not table_flow then
     return
   end
@@ -282,5 +286,14 @@ function GUIResourceList.on_player_changed_surface(event)
 end
 
 GUIDispatcher.register(defines.events.on_gui_click, RES_BUTTON_EVENT, on_button_clicked)
+
+function GUIResourceList.toggle_display(player)
+  local gui_top = player.gui.top
+  local table_flow = gui_top[GUICommon.GUI_RESOURCE_TABLE]
+  if table_flow ~= nil then
+    table_flow.visible = not table_flow.visible
+    update_gui(player)
+  end
+end
 
 return GUIResourceList

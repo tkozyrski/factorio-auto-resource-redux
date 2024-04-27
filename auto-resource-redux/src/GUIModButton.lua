@@ -6,6 +6,7 @@ local R = require "src.RichText"
 local EntityManager = require "src.EntityManager"
 local GUICommon = require "src.GUICommon"
 local GUIItemPriority = require "src.GUIItemPriority"
+local GUIResourceList = require "src.GUIResourceList"
 
 local TICKS_PER_UPDATE = 30
 local BUTTON_NAME = "arr-mod-btn"
@@ -35,6 +36,11 @@ local function update_gui(player)
       { "control-keys.mouse-button-1" },
       R.HINT_END,
       " to set item priorities.",
+      "\n",
+      R.HINT,
+      { "control-keys.mouse-button-2" },
+      R.HINT_END,
+      " to set toggle item display.",
     }
     button.sprite = "arr-logo"
   else
@@ -88,6 +94,8 @@ local function on_button_click(event, tags, player)
     if not enable_mod_for_force(player) then
       GUIItemPriority.open(player)
     end
+  elseif click_str == "right" then
+    GUIResourceList.toggle_display(player)
   end
 end
 
