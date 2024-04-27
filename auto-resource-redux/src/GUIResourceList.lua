@@ -283,4 +283,12 @@ end
 
 GUIDispatcher.register(defines.events.on_gui_click, RES_BUTTON_EVENT, on_button_clicked)
 
+function GUIResourceList.toggle_display(player)
+  local gui_top = player.gui.top
+  local table_flow = gui_top[GUICommon.GUI_RESOURCE_TABLE]
+  if table_flow ~= nil then
+    table_flow.visible = not table_flow.visible
+  end
+end
+
 return GUIResourceList
