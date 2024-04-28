@@ -4,6 +4,7 @@ local EntityHandlers = {}
 local TARGET_INGREDIENT_CRAFT_TIME = 2
 
 local EntityCondition = require "src.EntityCondition"
+local EntityCustomData = require "src.EntityCustomData"
 local FurnaceRecipeManager = require "src.FurnaceRecipeManager"
 local ItemPriorityManager = require "src.ItemPriorityManager"
 local LogisticManager = require "src.LogisticManager"
