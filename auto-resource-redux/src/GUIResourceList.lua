@@ -94,6 +94,10 @@ local function update_gui(player)
 
     local quantity = min or count
     local item_limit = Storage.get_item_limit(storage, storage_key) or 0
+    if count == 0 and item_limit == 0 then
+      expected_buttons[group_name .. ";" .. button.name] = false
+      goto continue
+    end
     local reserved = Storage.get_item_reservation(storage, storage_key)
     local is_red = quantity <= (reserved > 0 and reserved or item_limit * 0.01)
     local tooltip = {
@@ -148,6 +152,7 @@ local function update_gui(player)
     button.number = quantity
     button.tooltip = tooltip
     button.style = is_red and "red_slot_button" or "slot_button"
+    ::continue::
   end
 
   -- remove unexpected buttons
