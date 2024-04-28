@@ -53,6 +53,17 @@ Using these options it is possible to manage complex production chains, like cra
 ![Kovarex enrichment](https://raw.githubusercontent.com/udf/factorio-auto-resource-redux/master/images/kovarex-reservation.jpg)
 
 
+In games with multiple surfaces (eg space exploration), you can select which storage to use for the condition. This can be used to easily control your delivery cannons:  
+![Condition surface dropdown](https://raw.githubusercontent.com/udf/factorio-auto-resource-redux/master/images/condition-surface.jpg)
+
+
+## Circuits
+Using the Auto Resource Combinator, you can read the contents of your storage. This can be used for more complex logic than the built-in conditions:  
+![Custom Combinator](https://raw.githubusercontent.com/udf/factorio-auto-resource-redux/master/images/combinator.jpg)
+
+Note that due to API performance limitations the combinators don't update every tick, and you should avoid building lots of them (above 100 might cause slowdowns, depending on your hardware).
+
+
 ## Furnaces
 Furnace recipes can be set in the panel that opens next to the standard furnace UI:
 ![A furnace's recipe being set](https://raw.githubusercontent.com/udf/factorio-auto-resource-redux/master/images/furnace-recipe.gif)
