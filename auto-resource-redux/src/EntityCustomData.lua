@@ -1,4 +1,4 @@
-EntityCustomData = {}
+local EntityCustomData = {}
 local flib_table = require("__flib__/table")
 local EntityCondition = require "src.EntityCondition"
 local EntityGroups = require "src.EntityGroups"
