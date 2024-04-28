@@ -9,6 +9,8 @@ Each force (team) gets a storage that's unique to each surface (game map/planet)
   The items in the storage are shown in a table at the top of the screen:  
   ![List of items in the storage](https://raw.githubusercontent.com/udf/factorio-auto-resource-redux/master/images/resource-list.png)
 
+The UI can be hidden/shown by **right-click**ing the gear icon in the upper left.
+
 An item can be removed from storage by clicking its corresponding button:
 - **Click** to take 1 item, **Right-Click** to take 5
 - **Shift-Left Click** to take a stack, **Shift-Right Click** for half a stack
