@@ -1,4 +1,34 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.9
+Date: 2024-04-28
+  Optimizations:
+    - Greatly speed up alert handling, and reduce stutters caused by alert handling
+  Major Features:
+    - Support storing items that have grids (armor, vehicles, etc), the items will be removed from the grid and stored alongside the item
+    - Added support burner generators (burner-generator prototype)
+    - Added a combinator to read storage contents
+    - Added a dropdown to select which surface's storage to use for conditions and combinators
+  Minor Features:
+    - Allow using any item in conditions (even ones that can't be stored)
+    - Removed flashing "not in network" icon for Auto Resource Chests
+    - Added an option to return excess items from a requester chest
+  Gui:
+    - Reduced padding between items in the resource UI
+    - Allow toggling UI visibility via a right-click on the mod logo (thanks Ben Gardner!)
+    - Don't show items that have nothing stored which have their limit set to 0
+    - Place ghost in hand when player has no inventory (eg in space exploration satellite mode)
+  Bugfixes:
+    - Fix fluid going missing when inserting into a small fluidbox
+    - Fix condition being unset when changing fluid requester's fluid
+    - Fix incorrect fluid temperatures being inserted for recipes that specify a temperature range
+    - Fix crash when clicking resource list buttons when the player has no inventory
+    - (space exploration) Fix requester/sink tanks not being buildable in space
+    - Fix using incorrect surface when handling bot alerts
+    - Fix incorrect icon for Auto Resource Chests in some menus
+    - Fix entity panel UI opening off-screen (for custom entity UIs)
+    - Fix crash in wave defence scenario (thanks Ben Gardner!)
+
+---------------------------------------------------------------------------------------------------
 Version: 0.0.8
 Date: 2024-03-15
   Major Features:
