@@ -34,11 +34,9 @@ end
 
 --- Inserts fluids into the given entity
 ---@param o table
----@param target_amounts table
----@param default_amount integer
+---@param target_fluids table
 ---@return boolean inserted True if some fluids were inserted
-local function insert_fluids(o, target_amounts, default_amount)
-  default_amount = default_amount or 0
+local function insert_fluids(o, target_fluids)
   local inserted = false
   local fluidboxes = o.entity.fluidbox
   for i, fluid, filter, proto in Util.iter_fluidboxes(o.entity, "^", true) do
@@ -46,16 +44,16 @@ local function insert_fluids(o, target_amounts, default_amount)
       goto continue
     end
     fluid = fluid or { name = filter.name, amount = 0 }
-    local target_amount = (target_amounts[filter.name] or default_amount)
-    if target_amount <= 0 then
+    local target = target_fluids[filter.name]
+    if not target or target.amount <= 0 then
       goto continue
     end
-    local amount_can_insert = Util.clamp(target_amount - fluid.amount, 0, fluidboxes.get_capacity(i))
+    local amount_can_insert = Util.clamp(target.amount - fluid.amount, 0, fluidboxes.get_capacity(i))
     local amount_removed, new_temperature = Storage.remove_fluid_in_temperature_range(
       o.storage,
       Storage.get_fluid_storage_key(filter.name),
-      filter.minimum_temperature,
-      filter.maximum_temperature,
+      target.min_temp or filter.minimum_temperature,
+      target.max_temp or filter.maximum_temperature,
       amount_can_insert,
       o.use_reserved
     )
@@ -234,7 +232,11 @@ function EntityHandlers.handle_assembler(o, override_recipe, clear_inputs)
   for _, ingredient in ipairs(recipe.ingredients) do
     local target_amount = math.ceil(ingredient.amount) * ingredient_multiplier
     if ingredient.type == "fluid" then
-      fluid_targets[ingredient.name] = target_amount
+      fluid_targets[ingredient.name] = {
+        amount = target_amount,
+        min_temp = ingredient.minimum_temperature,
+        max_temp = ingredient.maximum_temperature,
+      }
     else
       local amount_needed = target_amount - (input_items[ingredient.name] or 0)
       if amount_needed > 0 then
@@ -247,7 +249,7 @@ function EntityHandlers.handle_assembler(o, override_recipe, clear_inputs)
       end
     end
   end
-  inserted = insert_fluids(o, fluid_targets, 0) or inserted
+  inserted = insert_fluids(o, fluid_targets) or inserted
   return inserted
 end
 
