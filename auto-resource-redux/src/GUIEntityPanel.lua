@@ -197,7 +197,7 @@ local function add_gui_content(window, entity)
     condition_surface_flow.add({
       type = "label",
       style = "heading_2_label",
-      caption = "Storage source [img=info]",
+      caption = "Signal source [img=info]",
       tooltip = "The surface of the storage to use when checking the condition, and reading signals (for [entity=arr-combinator] Auto Resource Combinators)"
     })
 
