@@ -160,9 +160,9 @@ local function get_condition_label(data)
   if condition and condition.item then
     local fluid_name = Storage.unpack_fluid_item_name(condition.item)
     table.insert(label, (fluid_name and "[fluid=%s]" or "[item=%s]"):format(fluid_name or condition.item))
-    local op_str = EntityCondition.OPERATIONS[condition.op] or EntityCondition.OPERATIONS[1]
+    local op_str = EntityCondition.OPERATIONS[condition.op] or EntityCondition.OPERATIONS[2]
     table.insert(label, " " .. op_str .. " ")
-    table.insert(label, (condition.value or 0) .. "%")
+    table.insert(label, (condition.value or 0) .. "")
   else
     table.insert(label, "Always on")
   end
