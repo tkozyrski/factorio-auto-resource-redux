@@ -140,7 +140,7 @@ local function add_gui_content(window, entity)
   condition_controls_flow.add({
     type = "drop-down",
     items = EntityCondition.OPERATIONS,
-    selected_index = condition.op or 1,
+    selected_index = condition.op or 2,
     style = "circuit_condition_comparator_dropdown",
     tags = { id = data_id, event = CONDITION_OP_EVENT }
   })
@@ -148,7 +148,7 @@ local function add_gui_content(window, entity)
     type = "button",
     name = "condition_value",
     style = "slot_button_in_shallow_frame",
-    caption = condition_value .. "%",
+    caption = condition_value .. "",
     tags = { event = CONDITION_VALUE_BUTTON_EVENT }
   })
   condition_value_btn.style.font_color = { 1, 1, 1 }
