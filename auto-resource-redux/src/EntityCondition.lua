@@ -35,9 +35,9 @@ function EntityCondition.evaluate(entity, condition, storage)
   local percent_stored = amount_stored / limit * 100
   local op = condition.op or 1
   local value = condition.value or 0
-  if op == 1 and percent_stored >= value then
+  if op == 1 and amount_stored >= value then
     return true
-  elseif op == 2 and percent_stored <= value then
+  elseif op == 2 and amount_stored <= value then
     return true
   end
   return false
